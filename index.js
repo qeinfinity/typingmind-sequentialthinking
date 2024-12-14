@@ -1,8 +1,12 @@
 // Sequential Thinking Plugin for TypingMind
 
+// Store thought history in memory
+const thoughtHistory = [];
+const branches = {};
+
 const schema = {
   name: "sequential_thinking",
-  description: "A tool that helps break down complex problems into structured, sequential thoughts. Supports thought revisions, branching paths, and progress tracking.",
+  description: "Facilitates a detailed, step-by-step thinking process for problem-solving and analysis. Helps break down complex problems into manageable steps, with support for revisions and branching thoughts.",
   parameters: {
     type: "object",
     properties: {
@@ -47,11 +51,17 @@ const schema = {
         description: "If more thoughts are needed beyond the current total"
       }
     },
-    required: ["thought", "thoughtNumber", "totalThoughts", "nextThoughtNeeded"]
+    required: [
+      "thought",
+      "nextThoughtNeeded",
+      "thoughtNumber",
+      "totalThoughts"
+    ]
   }
 };
 
-async function sequential_thinking(params) {
+async function sequential_thinking(params, userSettings) {
+  // Validate and process input
   const {
     thought,
     thoughtNumber,
@@ -65,7 +75,58 @@ async function sequential_thinking(params) {
   } = params;
 
   // Adjust total thoughts if needed
-  const adjustedTotalThoughts = thoughtNumber > totalThoughts ? thoughtNumber : totalThoughts;
+  let adjustedTotalThoughts = totalThoughts;
+  if (thoughtNumber > totalThoughts) {
+    adjustedTotalThoughts = thoughtNumber;
+  }
+
+  // Create thought data object
+  const thoughtData = {
+    thought,
+    thoughtNumber,
+    totalThoughts: adjustedTotalThoughts,
+    nextThoughtNeeded,
+    isRevision,
+    revisesThought,
+    branchFromThought,
+    branchId,
+    needsMoreThoughts
+  };
+
+  // Store in history
+  thoughtHistory.push(thoughtData);
+
+  // Handle branches
+  if (branchFromThought && branchId) {
+    if (!branches[branchId]) {
+      branches[branchId] = [];
+    }
+    branches[branchId].push(thoughtData);
+  }
+
+  // Format the response
+  const formattedThought = formatThought(thoughtData);
+
+  return {
+    thoughtNumber,
+    totalThoughts: adjustedTotalThoughts,
+    nextThoughtNeeded,
+    branches: Object.values(branches),
+    thoughtHistoryLength: thoughtHistory.length,
+    formattedOutput: formattedThought
+  };
+}
+
+function formatThought(thoughtData) {
+  const {
+    thoughtNumber,
+    totalThoughts,
+    thought,
+    isRevision,
+    revisesThought,
+    branchFromThought,
+    branchId
+  } = thoughtData;
 
   let prefix = '';
   let context = '';
@@ -81,20 +142,10 @@ async function sequential_thinking(params) {
     context = '';
   }
 
-  const header = `${prefix} ${thoughtNumber}/${adjustedTotalThoughts}${context}`;
+  const header = `${prefix} ${thoughtNumber}/${totalThoughts}${context}`;
   const border = '─'.repeat(Math.max(header.length, thought.length) + 4);
 
-  const formattedThought = `┌${border}┐\n│ ${header.padEnd(border.length - 2)} │\n├${border}┤\n│ ${thought.padEnd(border.length - 2)} │\n└${border}┘`;
-
-  // Return format required by TypingMind plugin spec
-  return {
-    thoughtNumber,
-    totalThoughts: adjustedTotalThoughts,
-    nextThoughtNeeded,
-    branches: [],
-    thoughtHistoryLength: 0, // Since we're stateless
-    formattedOutput: formattedThought
-  };
+  return `┌${border}┐\n│ ${header.padEnd(border.length - 2)} │\n├${border}┤\n│ ${thought.padEnd(border.length - 2)} │\n└${border}┘`;
 }
 
 module.exports = {
