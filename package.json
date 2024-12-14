@@ -1,0 +1,22 @@
+{
+  "name": "typingmind-sequentialthinking",
+  "version": "1.0.0",
+  "description": "An optimized implementation of sequential thinking that combines visual clarity with stateless efficiency",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "lint": "eslint src/"
+  },
+  "keywords": [
+    "sequential-thinking",
+    "cognitive-tools",
+    "problem-solving"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "jest": "^29.0.0",
+    "eslint": "^8.0.0"
+  }
+}
