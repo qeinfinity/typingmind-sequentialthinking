@@ -1,4 +1,4 @@
-# Sequential Thinking Tool
+# Sequential Thinking Plugin
 
 A stateless implementation of a sequential thinking framework with enhanced visual formatting. This tool helps break down complex problems into structured, sequential thoughts while maintaining efficiency and avoiding state management overhead.
 
